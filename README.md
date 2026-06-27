@@ -3,7 +3,7 @@ of my work in progress c# phase distortion synth
   
 GPLv3 licence, basically do whatever you want but don't change the licence  
   
-## Now featuring!!  
+## now featuring!!!!!!!!  
 Catalan and Japanese versions, check i18n.js out if you want to write your own translations  
 Envelopes/LFOs for morph (sine+distorted wave interpolation amount/resonant wave frequency), amplitude and frequency  
 Pressing the spacebar to trigger the gate (surprisingly convoluted to do)  
@@ -12,7 +12,8 @@ The envelopes/LFOs have curve controls, although imo only the "logarithmic"-type
   
 You can freely define your 5-segment transfer function. You can only read from a one-shot sine table. Maybe I'll try and implement running through the table twice at double the increment, but I don't think there'll ever be other readout tables because that'd cause massive cache thrashing. For a monophonic web port it probably doesn't matter but I want to make the C# version multitimbral and I'm kinda striving to make the DSP fast.  
   
-The end goal is having 5 transfer functions per oscillator, so that you can have the sound morph kind of like those wavetable synths with crossfading interpolation between tables. That's already kind of implemented in the C# version but there's lots to do still, for starters it doesn't have actual audio stream output code yet, mostly because audio output is very annoyingly platform-dependent and low-level, so it's better to have the synthesis first before diving into p/invoke hell.  
+## the end goal  
+is having 5 transfer functions per oscillator, so that you can have the sound morph kind of like those wavetable synths with crossfading interpolation between tables. That's already kind of implemented in the C# version but there's lots to do still. For starters it doesn't have actual audio stream output code yet, mostly because audio output is very annoyingly platform-dependent and low-level, so I thought it's better to have the synthesis ready before diving into p/invoke hell.  
   
 Another thing I really want to implement is 4-part multitimbrality where you can make one part be the transient, another one be the body of the patch, another the release, and so on. I've always thought this works mint with FM synths, whether it's actual multitimbrality or two-operator stacks.  
   
