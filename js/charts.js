@@ -215,7 +215,40 @@ function recalculatePd() {
   }
 
   $(`pd-morph-base-out`).textContent = v("pd-morph-base").toFixed(2);
+  const tf = new PhaseDistortionTransferFunction(
+    v("pd-x1"),
+    v("pd-y1"),
+    v("pd-x2"),
+    v("pd-y2"),
+    v("pd-x3"),
+    v("pd-y3"),
+    v("pd-x4"),
+    v("pd-y4"),
+  );
 
+  const targetData = new Float32Array(GRAPH_POINTS);
+  const morphedData = new Float32Array(GRAPH_POINTS);
+  for (let i = 0; i < GRAPH_POINTS; i++) {
+    const p = i / GRAPH_POINTS;
+    const source = lookupSine(p);
+    const target = lookupSine(tf.distort(p));
+    targetData[i] = target;
+    morphedData[i] = source + (target - source) * v("pd-morph-base");
+  }
+
+  pdWaveChart.data.datasets[1].data = Array.from(targetData);
+  pdWaveChart.data.datasets[2].data = Array.from(morphedData);
+  pdWaveChart.update("none");
+
+  pdTransferChart.data.datasets[0].data = [
+    { x: 0, y: 0 },
+    { x: tf.x1, y: tf.y1 },
+    { x: tf.x2, y: tf.y2 },
+    { x: tf.x3, y: tf.y3 },
+    { x: tf.x4, y: tf.y4 },
+    { x: 1, y: 1 },
+  ];
+  pdTransferChart.update("none");
   recalculatingPd = false;
   sendAllParams();
 }
