@@ -39,6 +39,20 @@ const TRANSLATIONS = {
     decayCurve: "Decay Curve",
     releaseCurve: "Release Curve",
     loop: "Loop",
+    noteNames: [
+      "C",
+      "C#",
+      "D",
+      "D#",
+      "E",
+      "F",
+      "F#",
+      "G",
+      "G#",
+      "A",
+      "A#",
+      "B",
+    ],
   },
   ca: {
     title: "Motor de distorsió de fase",
@@ -79,28 +93,48 @@ const TRANSLATIONS = {
     decayCurve: "Corba de caiguda",
     releaseCurve: "Corba de cua",
     loop: "Mode cíclic",
+    noteNames: [
+      "Do",
+      "Do#",
+      "Re",
+      "Re#",
+      "Mi",
+      "Fa",
+      "Fa#",
+      "Sol",
+      "Sol#",
+      "La",
+      "La#",
+      "Si",
+    ],
   },
 };
 
 function applyLanguage(lang) {
   document.documentElement.lang = lang;
   document.title = TRANSLATIONS[lang].title;
+
   document.querySelectorAll("[data-i18n]").forEach((el) => {
     const key = el.dataset.i18n;
     if (TRANSLATIONS[lang][key]) {
       el.textContent = TRANSLATIONS[lang][key];
     }
   });
+
   document.querySelectorAll("option[data-i18n]").forEach((opt) => {
     const key = opt.dataset.i18n;
     if (TRANSLATIONS[lang][key]) {
       opt.textContent = TRANSLATIONS[lang][key];
     }
   });
+
   const tablist = document.getElementById("tablist");
   if (tablist) {
     tablist.setAttribute("aria-label", TRANSLATIONS[lang].tablistLabel);
   }
+
+  NOTE_NAMES = TRANSLATIONS[lang].noteNames;
+
   localStorage.setItem("synth-lang", lang);
 }
 

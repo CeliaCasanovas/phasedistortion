@@ -22,6 +22,7 @@ const workletCode = `
               this.counter = 0;
               this.currentLevel = 0;
               this.segmentStartLevel = 0;
+              this.attackStartLevel = 0;
               this.attackMs = 0;
               this.decayMs = 0;
               this.releaseMs = 0;
@@ -31,69 +32,124 @@ const workletCode = `
               this.releaseCurve = 1;
               this.loop = false;
             }
+
             get attackSamples() { return this.attackMs * this.sampleRateMs; }
-            get decaySamples() { return this.decayMs * this.sampleRateMs; }
-            get releaseSamples() { return this.releaseMs * this.sampleRateMs; }
+            get decaySamples()  { return this.decayMs  * this.sampleRateMs; }
+            get releaseSamples(){ return this.releaseMs * this.sampleRateMs; }
 
             noteOn() {
-              this.segmentStartLevel = (this.stage === "Idle") ? 0 : this.currentLevel;
+              this.attackStartLevel = (this.stage === "Idle") ? 0 : this.currentLevel;
+              this.segmentStartLevel = this.attackStartLevel;
               this.stage = "Attack";
               this.counter = 0;
             }
+
             noteOff() {
               if (this.stage === "Idle" || this.stage === "Release") return;
               this.segmentStartLevel = this.currentLevel;
               this.stage = "Release";
               this.counter = 0;
             }
+
             getStageParams(stage) {
               switch (stage) {
-                case "Attack": return { samples: this.attackSamples, end: 1, curve: this.attackCurve };
-                case "Decay": return { samples: this.decaySamples, end: this.sustainLevel, curve: this.decayCurve };
-                case "Release": return { samples: this.releaseSamples, end: 0, curve: this.releaseCurve };
-                default: return { samples: 0, end: 0, curve: 1 };
+                case "Attack":
+                  return {
+                    start: this.attackStartLevel,
+                    end: 1,
+                    samples: this.attackSamples,
+                    curve: this.attackCurve
+                  };
+                case "Decay":
+                  return {
+                    start: 1,
+                    end: this.sustainLevel,
+                    samples: this.decaySamples,
+                    curve: this.decayCurve
+                  };
+                case "Release":
+                  return {
+                    start: this.segmentStartLevel,
+                    end: 0,
+                    samples: this.releaseSamples,
+                    curve: this.releaseCurve
+                  };
+                default:
+                  return { start: 0, end: 0, samples: 0, curve: 1 };
               }
             }
+
             getNextStage(current) {
               switch (current) {
-                case "Attack": return "Decay";
-                case "Decay": return this.loop ? "Attack" : "Sustain";
+                case "Attack":  return "Decay";
+                case "Decay":   return this.loop ? "Attack" : "Sustain";
                 case "Release": return "Idle";
-                default: return "Idle";
+                default:        return "Idle";
               }
             }
+
             shapeCurve(t, curve) {
               if (curve === 1.0) return t;
               if (curve === 2.0) return t * t;
               if (curve === 0.5) return Math.sqrt(t);
               return Math.pow(t, curve);
             }
+
             calculateBlock(outputBuffer) {
               const len = outputBuffer.length;
-              if (this.stage === "Idle") { outputBuffer.fill(0); return; }
+              if (this.stage === "Idle") {
+                outputBuffer.fill(0);
+                return;
+              }
+
               for (let i = 0; i < len; i++) {
-                if (this.stage === "Idle") { outputBuffer[i] = 0; continue; }
+                if (this.stage === "Idle") {
+                  outputBuffer[i] = 0;
+                  continue;
+                }
                 if (this.stage === "Sustain") {
                   this.currentLevel = this.sustainLevel;
                   outputBuffer[i] = this.currentLevel;
                   continue;
                 }
+
                 let params = this.getStageParams(this.stage);
+
                 if (this.counter >= params.samples) {
                   this.currentLevel = params.end;
-                  this.segmentStartLevel = this.currentLevel;
+
+                  if (this.stage === "Decay" && this.loop) {
+                    this.attackStartLevel = this.currentLevel;
+                  }
+
                   this.stage = this.getNextStage(this.stage);
+                  this.segmentStartLevel = this.currentLevel;
                   this.counter = 0;
                   params = this.getStageParams(this.stage);
-                  if (this.stage === "Idle")  { outputBuffer[i] = 0; continue; }
-                  if (this.stage === "Sustain") { i--; continue; }
+
+                  if (this.stage === "Idle") {
+                    outputBuffer[i] = 0;
+                    for (let j = i + 1; j < len; j++) {
+                      outputBuffer[j] = 0;
+                    }
+                    return;
+                  }
+
+                  if (this.stage === "Sustain") {
+                    this.currentLevel = this.sustainLevel;
+                    outputBuffer[i] = this.currentLevel;
+                    continue;
+                  }
                 }
+
+                // Compute current sample within the segment
                 if (params.samples > 0) {
-                  let t = this.counter / params.samples;
-                  this.currentLevel = this.segmentStartLevel + (params.end - this.segmentStartLevel) * this.shapeCurve(t, params.curve);
+                  const t = this.counter / params.samples;
+                  this.currentLevel = params.start + (params.end - params.start) * this.shapeCurve(t, params.curve);
                 } else {
                   this.currentLevel = params.end;
                 }
+
                 outputBuffer[i] = this.currentLevel;
                 this.counter++;
               }

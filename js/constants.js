@@ -4,7 +4,7 @@ const MIN_GAP = 1e-4;
 const FREQ_MIN = 55;
 const FREQ_MAX = 3520;
 const FREQ_OCTAVES = Math.log2(FREQ_MAX / FREQ_MIN);
-const NOTE_NAMES = [
+let NOTE_NAMES = [
   "C",
   "C#",
   "D",
