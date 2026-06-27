@@ -1,0 +1,513 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Phase Distortion Engine</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main id="synthMain">
+      <header>
+        <p class="eyebrow">// akirako saint-just</p>
+        <h1 data-i18n="title">Phase Distortion Engine</h1>
+      </header>
+
+      <!-- language menu -->
+      <div style="text-align: right; margin-bottom: 0.5rem">
+        <label for="langToggle" class="sr-only">Language</label>
+        <select
+          id="langToggle"
+          style="
+            background: #000;
+            color: var(--fg);
+            border-color: var(--fg-dim);
+            font-family: inherit;
+            font-size: 0.7rem;
+            padding: 0.2rem 0.4rem;
+          "
+        >
+          <option value="en">English</option>
+          <option value="ca">Català</option>
+        </select>
+      </div>
+
+      <!-- audio transport -->
+      <section class="panel">
+        <p class="panel-title">
+          <span data-i18n="audioTransport">// audio transport</span>
+        </p>
+        <div class="control-audio">
+          <button id="gateBtn" aria-pressed="false" data-i18n="gateBtn">
+            Open gate
+          </button>
+          <span class="gate-hint" data-i18n="spaceHint"
+            >or press [SPACE]!!</span
+          >
+          <div class="control-row mt-0">
+            <label for="volume" data-i18n="vol">Vol</label>
+            <input
+              type="range"
+              id="volume"
+              min="0"
+              max="1"
+              step="0.01"
+              value="0.5"
+              style="width: 80px"
+            />
+            <output for="volume" id="volume-out">0.50</output>
+          </div>
+          <div class="control-row mt-0">
+            <label for="frequency" data-i18n="freq">Freq</label>
+            <div class="frequency-slider-wrap">
+              <input
+                type="range"
+                id="frequency"
+                min="0"
+                max="100"
+                step="0.01"
+                value="50"
+              />
+            </div>
+            <output
+              for="frequency"
+              id="frequency-out"
+              class="text-cyan min-w-10ch"
+              >A4: 440Hz</output
+            >
+          </div>
+        </div>
+      </section>
+
+      <!-- tab buttons -->
+      <div
+        class="tab-bar"
+        role="tablist"
+        id="tablist"
+        aria-label="Oscillator tabs"
+      >
+        <button
+          id="btn-pd"
+          class="tab-btn"
+          role="tab"
+          aria-selected="true"
+          aria-controls="tab-pd"
+          data-i18n="tabPD"
+        >
+          Phase Distortion
+        </button>
+        <button
+          id="btn-cz"
+          class="tab-btn"
+          role="tab"
+          aria-selected="false"
+          aria-controls="tab-cz"
+          data-i18n="tabCZ"
+        >
+          CZ Resonance
+        </button>
+      </div>
+
+      <!-- phase distortion oscillator tab -->
+      <section
+        id="tab-pd"
+        role="tabpanel"
+        aria-labelledby="btn-pd"
+        aria-hidden="false"
+        class="panel panel-pd tab-panel"
+      >
+        <div class="panel-title">
+          <span data-i18n="pdHeading">// phase distortion</span>
+          <label
+            class="control-row"
+            style="margin: 0; color: var(--pink); cursor: pointer"
+          >
+            <span data-i18n="on">ON</span>
+            <input type="checkbox" id="pd-enable" checked />
+          </label>
+        </div>
+        <fieldset class="control-group">
+          <legend data-i18n="transferBreakpoints">
+            Transfer function breakpoints
+          </legend>
+          <div class="control-grid" id="pd-breakpoints"></div>
+        </fieldset>
+        <fieldset class="control-group">
+          <legend data-i18n="morphSettings">Morph Settings</legend>
+          <div class="control-grid">
+            <div class="control">
+              <label for="pd-morph-base" data-i18n="baseMorph"
+                >Morph</label
+              >
+              <input
+                type="range"
+                id="pd-morph-base"
+                min="0"
+                max="1"
+                step="0.001"
+                value="0.2"
+              />
+              <output for="pd-morph-base" id="pd-morph-base-out">0.20</output>
+            </div>
+            <div class="control">
+              <label for="pd-morph-env-amt" data-i18n="envAmount"
+                >Env Amount</label
+              >
+              <input
+                type="range"
+                id="pd-morph-env-amt"
+                min="-1"
+                max="1"
+                step="0.01"
+                value="0.75"
+              />
+              <output for="pd-morph-env-amt" id="pd-morph-env-amt-out"
+                >0.75</output
+              >
+            </div>
+          </div>
+        </fieldset>
+        <ul class="graph-legend">
+          <li>
+            <span class="swatch swatch-source"></span
+            ><span data-i18n="legendSource">Source</span>
+          </li>
+          <li>
+            <span class="swatch swatch-target"></span
+            ><span data-i18n="legendTarget">Target</span>
+          </li>
+          <li>
+            <span class="swatch swatch-morphed"></span
+            ><span data-i18n="legendMorphed">Morphed wave</span>
+          </li>
+          <li>
+            <span class="swatch swatch-transfer"></span
+            ><span data-i18n="legendTransfer">Transfer Fn</span>
+          </li>
+        </ul>
+        <figure class="graph-figure">
+          <div class="wave-container"><canvas id="pd-waveChart"></canvas></div>
+          <div class="transfer-container">
+            <canvas id="pd-transferChart"></canvas>
+          </div>
+        </figure>
+      </section>
+
+      <!-- resonant oscillator tab -->
+      <section
+        id="tab-cz"
+        role="tabpanel"
+        aria-labelledby="btn-cz"
+        aria-hidden="true"
+        class="panel panel-cz tab-panel"
+      >
+        <div class="panel-title">
+          <span data-i18n="czHeading">// cz resonance</span>
+          <label
+            class="control-row"
+            style="margin: 0; color: var(--orange); cursor: pointer"
+          >
+            <span data-i18n="on">ON</span>
+            <input type="checkbox" id="cz-enable" />
+          </label>
+        </div>
+        <fieldset class="control-group">
+          <legend data-i18n="resonance">Resonance</legend>
+          <div class="control-grid">
+            <div class="control">
+              <label for="cz-resonanceAmount" data-i18n="baseAmount"
+                >Morph</label
+              >
+              <input
+                type="range"
+                id="cz-resonanceAmount"
+                min="0"
+                max="1"
+                step="0.001"
+                value="0"
+              />
+              <output for="cz-resonanceAmount" id="cz-resonanceAmount-out"
+                >0.00</output
+              >
+            </div>
+            <div class="control">
+              <label for="cz-res-env-amt" data-i18n="envAmount"
+                >Env Amount</label
+              >
+              <input
+                type="range"
+                id="cz-res-env-amt"
+                min="-1"
+                max="1"
+                step="0.01"
+                value="0.5"
+              />
+              <output for="cz-res-env-amt" id="cz-res-env-amt-out">0.50</output>
+            </div>
+            <div class="control">
+              <label for="cz-windowType" data-i18n="windowType"
+                >Window type</label
+              >
+              <select id="cz-windowType">
+                <option value="Saw" data-i18n="windowSaw">Saw</option>
+                <option value="Triangle" data-i18n="windowTriangle">
+                  Triangle
+                </option>
+                <option value="Trapezoid" data-i18n="windowTrapezoid">
+                  Trapezoid
+                </option>
+              </select>
+            </div>
+          </div>
+        </fieldset>
+        <ul class="graph-legend">
+          <li>
+            <span class="swatch swatch-source"></span
+            ><span data-i18n="legendSine">Sine</span>
+          </li>
+          <li>
+            <span class="swatch swatch-cz"></span
+            ><span data-i18n="legendCZOutput">Resonant output</span>
+          </li>
+        </ul>
+        <figure class="graph-figure graph-figure--compact">
+          <div class="wave-container wave-container--full">
+            <canvas id="cz-waveChart"></canvas>
+          </div>
+        </figure>
+      </section>
+
+      <!-- morph envelope -->
+      <section class="panel panel-mod">
+        <p class="panel-title">
+          <span data-i18n="morphEnvelope">// morph envelope</span>
+        </p>
+        <div class="control-grid">
+          <div class="control">
+            <label for="m-env-attack" data-i18n="attackMs">Attack (ms)</label>
+            <input
+              type="range"
+              id="m-env-attack"
+              min="0"
+              max="2000"
+              step="1"
+              value="200"
+            />
+            <output for="m-env-attack" id="m-env-attack-out">200</output>
+          </div>
+          <div class="control">
+            <label for="m-env-decay" data-i18n="decayMs">Decay (ms)</label>
+            <input
+              type="range"
+              id="m-env-decay"
+              min="0"
+              max="2000"
+              step="1"
+              value="300"
+            />
+            <output for="m-env-decay" id="m-env-decay-out">300</output>
+          </div>
+          <div class="control">
+            <label for="m-env-sustain" data-i18n="sustain">Sustain Level</label>
+            <input
+              type="range"
+              id="m-env-sustain"
+              min="0"
+              max="1"
+              step="0.01"
+              value="0.5"
+            />
+            <output for="m-env-sustain" id="m-env-sustain-out">0.50</output>
+          </div>
+          <div class="control">
+            <label for="m-env-release" data-i18n="releaseMs"
+              >Release (ms)</label
+            >
+            <input
+              type="range"
+              id="m-env-release"
+              min="0"
+              max="5000"
+              step="1"
+              value="800"
+            />
+            <output for="m-env-release" id="m-env-release-out">800</output>
+          </div>
+          <div class="control">
+            <label for="m-env-attack-curve" data-i18n="attackCurve"
+              >Attack Curve</label
+            >
+            <input
+              type="range"
+              id="m-env-attack-curve"
+              min="0.1"
+              max="10"
+              step="0.1"
+              value="0.3"
+            />
+            <output for="m-env-attack-curve" id="m-env-attack-curve-out"
+              >0.3</output
+            >
+          </div>
+          <div class="control">
+            <label for="m-env-decay-curve" data-i18n="decayCurve"
+              >Decay Curve</label
+            >
+            <input
+              type="range"
+              id="m-env-decay-curve"
+              min="0.1"
+              max="10"
+              step="0.1"
+              value="0.8"
+            />
+            <output for="m-env-decay-curve" id="m-env-decay-curve-out"
+              >0.8</output
+            >
+          </div>
+          <div class="control">
+            <label for="m-env-release-curve" data-i18n="releaseCurve"
+              >Release Curve</label
+            >
+            <input
+              type="range"
+              id="m-env-release-curve"
+              min="0.1"
+              max="10"
+              step="0.1"
+              value="0.8"
+            />
+            <output for="m-env-release-curve" id="m-env-release-curve-out"
+              >0.8</output
+            >
+          </div>
+          <div class="control">
+            <label for="m-env-loop" data-i18n="loop">Loop</label>
+            <input type="checkbox" id="m-env-loop" />
+          </div>
+        </div>
+      </section>
+
+      <!-- amp envelope -->
+      <section class="panel panel-amp">
+        <p class="panel-title">
+          <span data-i18n="ampEnvelope">// amplitude envelope</span>
+        </p>
+        <div class="control-grid">
+          <div class="control">
+            <label for="a-env-attack" data-i18n="attackMs">Attack (ms)</label>
+            <input
+              type="range"
+              id="a-env-attack"
+              min="0"
+              max="2000"
+              step="1"
+              value="10"
+            />
+            <output for="a-env-attack" id="a-env-attack-out">10</output>
+          </div>
+          <div class="control">
+            <label for="a-env-decay" data-i18n="decayMs">Decay (ms)</label>
+            <input
+              type="range"
+              id="a-env-decay"
+              min="0"
+              max="2000"
+              step="1"
+              value="100"
+            />
+            <output for="a-env-decay" id="a-env-decay-out">100</output>
+          </div>
+          <div class="control">
+            <label for="a-env-sustain" data-i18n="sustain">Sustain Level</label>
+            <input
+              type="range"
+              id="a-env-sustain"
+              min="0"
+              max="1"
+              step="0.01"
+              value="0.7"
+            />
+            <output for="a-env-sustain" id="a-env-sustain-out">0.70</output>
+          </div>
+          <div class="control">
+            <label for="a-env-release" data-i18n="releaseMs"
+              >Release (ms)</label
+            >
+            <input
+              type="range"
+              id="a-env-release"
+              min="0"
+              max="5000"
+              step="1"
+              value="600"
+            />
+            <output for="a-env-release" id="a-env-release-out">600</output>
+          </div>
+          <div class="control">
+            <label for="a-env-attack-curve" data-i18n="attackCurve"
+              >Attack Curve</label
+            >
+            <input
+              type="range"
+              id="a-env-attack-curve"
+              min="0.1"
+              max="10"
+              step="0.1"
+              value="0.3"
+            />
+            <output for="a-env-attack-curve" id="a-env-attack-curve-out"
+              >0.3</output
+            >
+          </div>
+          <div class="control">
+            <label for="a-env-decay-curve" data-i18n="decayCurve"
+              >Decay Curve</label
+            >
+            <input
+              type="range"
+              id="a-env-decay-curve"
+              min="0.1"
+              max="10"
+              step="0.1"
+              value="0.8"
+            />
+            <output for="a-env-decay-curve" id="a-env-decay-curve-out"
+              >0.8</output
+            >
+          </div>
+          <div class="control">
+            <label for="a-env-release-curve" data-i18n="releaseCurve"
+              >Release Curve</label
+            >
+            <input
+              type="range"
+              id="a-env-release-curve"
+              min="0.1"
+              max="10"
+              step="0.1"
+              value="0.8"
+            />
+            <output for="a-env-release-curve" id="a-env-release-curve-out"
+              >0.8</output
+            >
+          </div>
+          <div class="control">
+            <label for="a-env-loop" data-i18n="loop">Loop</label>
+            <input type="checkbox" id="a-env-loop" />
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+
+    <script src="js/constants.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/i18n.js"></script>
+    <script src="js/charts.js"></script>
+    <script src="js/audio.js"></script>
+    <script src="js/modulation.js"></script>
+    <script src="js/main.js"></script>
+  </body>
+</html>
