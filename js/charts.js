@@ -215,6 +215,7 @@ function recalculatePd() {
   }
 
   $(`pd-morph-base-out`).textContent = v("pd-morph-base").toFixed(2);
+
   const tf = new PhaseDistortionTransferFunction(
     v("pd-x1"),
     v("pd-y1"),
@@ -249,6 +250,7 @@ function recalculatePd() {
     { x: 1, y: 1 },
   ];
   pdTransferChart.update("none");
+
   recalculatingPd = false;
   sendAllParams();
 }

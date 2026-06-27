@@ -326,9 +326,15 @@ select {
   margin: 0 !important;
   cursor: pointer;
 }
-.panel-pd .on-toggle { color: var(--pink); }
-.panel-cz .on-toggle { color: var(--orange); }
-.panel-mod .on-toggle { color: var(--cyan); }
+.panel-pd .on-toggle {
+  color: var(--pink);
+}
+.panel-cz .on-toggle {
+  color: var(--orange);
+}
+.panel-mod .on-toggle {
+  color: var(--cyan);
+}
 .graph-figure--env {
   height: 100px;
   margin-top: 1rem;
