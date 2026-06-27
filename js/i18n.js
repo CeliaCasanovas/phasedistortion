@@ -55,6 +55,10 @@ const TRANSLATIONS = {
     ],
     freqEnvelope: "// frequency envelope",
     freqEnvAmt: "Pitch Amt (semitones)",
+    audioLoadError:
+      "audioWorklet.addModule doesn't work with file:// " +
+      "so either serve the project (npx serve . or python -m http.server then open your localhost:8000) " +
+      "or embed worklet-processor.js as a string :(",
   },
   ca: {
     title: "Motor de distorsió de fase",
@@ -72,7 +76,7 @@ const TRANSLATIONS = {
     transferBreakpoints: "Punts d'inflexió de la funció de transferència",
     morphSettings: "Paràmetres de morphing",
     baseMorph: "Morphing",
-    envAmount: "Quantitat Env",
+    envAmount: "Quantitat contorn",
     legendSource: "Origen",
     legendTarget: "Destinació",
     legendMorphed: "Ona amb morphing",
@@ -85,8 +89,8 @@ const TRANSLATIONS = {
     windowTrapezoid: "Trapezoïde",
     legendSine: "Sinus base",
     legendCZOutput: "Sortida resonant",
-    morphEnvelope: "// envoltant de morphing",
-    ampEnvelope: "// envoltant d'amplitud",
+    morphEnvelope: "// contorn de morphing",
+    ampEnvelope: "// contorn d'amplitud",
     attackMs: "Atac (ms)",
     decayMs: "Caiguda (ms)",
     sustain: "Nivell de sostingut",
@@ -109,8 +113,12 @@ const TRANSLATIONS = {
       "La#",
       "Si",
     ],
-    freqEnvelope: "// envoltant de freqüència",
+    freqEnvelope: "// contorn de freqüència",
     freqEnvAmt: "Variació de to (semitons)",
+    audioLoadError:
+      "audioWorklet.addModule doesn't work with file:// " +
+      "so either serve the project (npx serve . or python -m http.server then open your localhost:8000) " +
+      "or embed worklet-processor.js as a string :(",
   },
   ja: {
     title: "フェーズ・ディストーション・エンジン",
@@ -167,6 +175,10 @@ const TRANSLATIONS = {
     ],
     freqEnvelope: "// 周波数エンベロープ",
     freqEnvAmt: "ピッチ変化量 (半音)",
+    audioLoadError:
+      "audioWorklet.addModule doesn't work with file:// " +
+      "so either serve the project (npx serve . or python -m http.server then open your localhost:8000) " +
+      "or embed worklet-processor.js as a string :(",
   },
 };
 

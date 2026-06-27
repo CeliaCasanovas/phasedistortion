@@ -2,10 +2,12 @@
 let isAudioInit = false;
 let audioCtx;
 let audioWorkletNode;
+let serverHintShown = false;
 
 async function initAudio() {
   if (isAudioInit) return;
   audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
   try {
     await audioCtx.audioWorklet.addModule("js/worklet-processor.js");
   } catch {
@@ -17,10 +19,16 @@ async function initAudio() {
         ),
       );
     } catch (e) {
-      console.error(
-        "audioWorklet.addModule doesn't work with file:// so either serve it (npx serve or python -m http.server then open your localhost at the right port) or embed worklet-processor.js code as a string :(",
-        e,
-      );
+      if (!serverHintShown) {
+        const lang = document.documentElement.lang;
+        console.error(TRANSLATIONS[lang].audioLoadError, e);
+        const msg = document.createElement("div");
+        msg.style.cssText =
+          "position:fixed;bottom:1rem;left:1rem;background:var(--panel);" +
+          "color:var(--fg);border:2px solid var(--pink);padding:0.5rem 1rem;z-index:999;font-size:0.75rem;";
+        msg.textContent = TRANSLATIONS[lang]?.audioLoadError;
+        document.body.appendChild(msg);
+      }
       return;
     }
   }
