@@ -53,6 +53,8 @@ const TRANSLATIONS = {
       "A#",
       "B",
     ],
+    freqEnvelope: "// frequency envelope",
+    freqEnvAmt: "Pitch Amt (semitones)",
   },
   ca: {
     title: "Motor de distorsió de fase",
@@ -107,6 +109,8 @@ const TRANSLATIONS = {
       "La#",
       "Si",
     ],
+    freqEnvelope: "// envoltant de freqüència",
+    freqEnvAmt: "Variació de to (semitons)",
   },
   ja: {
     title: "フェーズ・ディストーション・エンジン",
@@ -161,6 +165,8 @@ const TRANSLATIONS = {
       "A#",
       "B",
     ],
+    freqEnvelope: "// 周波数エンベロープ",
+    freqEnvAmt: "ピッチ変化量 (半音)",
   },
 };
 

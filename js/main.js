@@ -102,6 +102,35 @@ for (const id of envelopeSliderIds) {
   });
 }
 
+// frequency envelope sliders
+const freqEnvIds = [
+  "f-env-attack",
+  "f-env-decay",
+  "f-env-sustain",
+  "f-env-release",
+  "f-env-attack-curve",
+  "f-env-decay-curve",
+  "f-env-release-curve",
+];
+for (const id of freqEnvIds) {
+  document.getElementById(id).addEventListener("input", () => {
+    document.getElementById(`${id}-out`).textContent = parseFloat(
+      document.getElementById(id).value,
+    );
+    sendAllParams();
+  });
+}
+document.getElementById("f-env-loop").addEventListener("change", sendAllParams);
+document
+  .getElementById("freq-env-enable")
+  .addEventListener("change", sendAllParams);
+document.getElementById("f-env-amt").addEventListener("input", () => {
+  document.getElementById("f-env-amt-out").textContent = parseFloat(
+    document.getElementById("f-env-amt").value,
+  ).toFixed(1);
+  sendAllParams();
+});
+
 // loop-mode toggles
 document.getElementById("m-env-loop").addEventListener("change", sendAllParams);
 document.getElementById("a-env-loop").addEventListener("change", sendAllParams);
@@ -136,3 +165,11 @@ requestAnimationFrame(renderModulatedVisuals);
 for (const id of envelopeSliderIds) {
   $(`${id}-out`).textContent = parseFloat($(id).value);
 }
+for (const id of freqEnvIds) {
+  document.getElementById(`${id}-out`).textContent = parseFloat(
+    document.getElementById(id).value,
+  );
+}
+document.getElementById("f-env-amt-out").textContent = parseFloat(
+  document.getElementById("f-env-amt").value,
+).toFixed(1);

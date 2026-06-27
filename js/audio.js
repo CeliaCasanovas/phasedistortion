@@ -192,7 +192,7 @@ const workletCode = `
               const sampleRateMs = globalThis.sampleRate / 1000;
               this.ampEnv = new SynthEnvelope(sampleRateMs);
               this.morphEnv = new SynthEnvelope(sampleRateMs);
-
+              this.freqEnv = new SynthEnvelope(sampleRateMs);
               this.frequency = 440;
               this.volume = 0.5;
               this.pdOn = true;
@@ -210,9 +210,11 @@ const workletCode = `
                 if (msg.type === 'noteOn') {
                   this.ampEnv.noteOn();
                   this.morphEnv.noteOn();
+                  this.freqEnv.noteOn();
                 } else if (msg.type === 'noteOff') {
                   this.ampEnv.noteOff();
                   this.morphEnv.noteOff();
+                  this.freqEnv.noteOff();
                 } else if (msg.type === 'setParams') {
                   const p = msg.params;
                   this.frequency = p.frequency;
@@ -227,6 +229,9 @@ const workletCode = `
 
                   Object.assign(this.ampEnv, p.ampEnv);
                   Object.assign(this.morphEnv, p.morphEnv);
+                  Object.assign(this.freqEnv, p.freqEnv);
+                  this.freqEnvAmt = p.freqEnvAmt;
+                  this.freqEnvOn = p.freqEnvOn;
 
                   const tf = p.tf;
                   this.currentTF = new PhaseDistortionTransferFunction(
@@ -246,10 +251,23 @@ const workletCode = `
               const morphEnvArray = new Float32Array(blockSize);
               this.ampEnv.calculateBlock(ampEnvArray);
               this.morphEnv.calculateBlock(morphEnvArray);
+              const freqEnvArray = new Float32Array(blockSize);
+              this.freqEnv.calculateBlock(freqEnvArray);
+              const freqEnvOn = this.freqEnvOn;
 
               const phaseInc = this.frequency / globalThis.sampleRate;
 
               for (let i = 0; i < blockSize; i++) {
+                let currentFreq;
+
+                if (freqEnvOn) {
+                  const freqMod = Math.pow(2, this.freqEnvAmt * freqEnvArray[i] / 12);
+                  currentFreq = this.frequency * freqMod;
+                } else {
+                  currentFreq = this.frequency;
+                }
+
+                const phaseInc = currentFreq / globalThis.sampleRate;
                 this.phase += phaseInc;
                 if (this.phase >= 1.0) this.phase -= 1.0;
 
@@ -339,6 +357,18 @@ function sendAllParams() {
         decayCurve: g("m-env-decay-curve"),
         releaseCurve: g("m-env-release-curve"),
         loop: document.getElementById("m-env-loop").checked,
+      },
+      freqEnvOn: document.getElementById("freq-env-enable").checked,
+      freqEnvAmt: g("f-env-amt"),
+      freqEnv: {
+        attackMs: g("f-env-attack"),
+        decayMs: g("f-env-decay"),
+        sustainLevel: g("f-env-sustain"),
+        releaseMs: g("f-env-release"),
+        attackCurve: g("f-env-attack-curve"),
+        decayCurve: g("f-env-decay-curve"),
+        releaseCurve: g("f-env-release-curve"),
+        loop: document.getElementById("f-env-loop").checked,
       },
       tf: {
         x1: g("pd-x1"),
