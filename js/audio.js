@@ -12,10 +12,15 @@ async function initAudio() {
     try {
       const resp = await fetch("js/worklet-processor.js");
       await audioCtx.audioWorklet.addModule(
-        URL.createObjectURL(new Blob([await resp.text()], { type: "application/javascript" }))
+        URL.createObjectURL(
+          new Blob([await resp.text()], { type: "application/javascript" }),
+        ),
       );
     } catch (e) {
-      console.error("AudioWorklet failed to load. Try serving the page via HTTP (e.g. npx serve).", e);
+      console.error(
+        "audioWorklet.addModule doesn't work with file:// so either serve it (npx serve or python -m http.server then open your localhost at the right port) or embed worklet-processor.js code as a string :(",
+        e,
+      );
       return;
     }
   }
@@ -73,10 +78,14 @@ function sendAllParams() {
         loop: $("f-env-loop").checked,
       },
       tf: {
-        x1: v("pd-x1"), y1: v("pd-y1"),
-        x2: v("pd-x2"), y2: v("pd-y2"),
-        x3: v("pd-x3"), y3: v("pd-y3"),
-        x4: v("pd-x4"), y4: v("pd-y4"),
+        x1: v("pd-x1"),
+        y1: v("pd-y1"),
+        x2: v("pd-x2"),
+        y2: v("pd-y2"),
+        x3: v("pd-x3"),
+        y3: v("pd-y3"),
+        x4: v("pd-x4"),
+        y4: v("pd-y4"),
       },
     },
   });
@@ -84,12 +93,14 @@ function sendAllParams() {
 
 function originalGateOn() {
   if (!isAudioInit) {
-    initAudio().then(() => {
-      if (audioCtx.state === "suspended") audioCtx.resume();
-      audioWorkletNode.port.postMessage({ type: "noteOn" });
-      $("gateBtn").classList.add("active");
-      $("gateBtn").setAttribute("aria-pressed", "true");
-    }).catch(console.error);
+    initAudio()
+      .then(() => {
+        if (audioCtx.state === "suspended") audioCtx.resume();
+        audioWorkletNode.port.postMessage({ type: "noteOn" });
+        $("gateBtn").classList.add("active");
+        $("gateBtn").setAttribute("aria-pressed", "true");
+      })
+      .catch(console.error);
   } else {
     if (audioCtx.state === "suspended") audioCtx.resume();
     audioWorkletNode.port.postMessage({ type: "noteOn" });

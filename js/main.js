@@ -5,44 +5,73 @@ $("gateBtn").addEventListener("mousedown", gateOn);
 $("gateBtn").addEventListener("mouseup", gateOff);
 $("gateBtn").addEventListener("mouseleave", gateOff);
 
-document.addEventListener("keydown", (event) => {
-  if (event.code !== "Space") return;
-  const tag = event.target.tagName;
-  if (tag === "INPUT" || tag === "SELECT" || tag === "TEXTAREA") return;
-  event.preventDefault();
-  event.stopPropagation();
-  if (!event.repeat) gateOn();
-}, { passive: false });
+document.addEventListener(
+  "keydown",
+  (event) => {
+    if (event.code !== "Space") return;
+    const tag = event.target.tagName;
+    if (tag === "INPUT" || tag === "SELECT" || tag === "TEXTAREA") return;
+    event.preventDefault();
+    event.stopPropagation();
+    if (!event.repeat) gateOn();
+  },
+  { passive: false },
+);
 
-document.addEventListener("keyup", (event) => {
-  if (event.code !== "Space") return;
-  const tag = event.target.tagName;
-  if (tag === "INPUT" || tag === "SELECT" || tag === "TEXTAREA") return;
-  event.preventDefault();
-  event.stopPropagation();
-  gateOff();
-}, { passive: false });
+document.addEventListener(
+  "keyup",
+  (event) => {
+    if (event.code !== "Space") return;
+    const tag = event.target.tagName;
+    if (tag === "INPUT" || tag === "SELECT" || tag === "TEXTAREA") return;
+    event.preventDefault();
+    event.stopPropagation();
+    gateOff();
+  },
+  { passive: false },
+);
 
 function drawAllEnvGraphs() {
   const v = (id) => parseFloat($(id).value);
-  drawEnvelopeGraph("m-env-graph", {
-    attack: v("m-env-attack"), decay: v("m-env-decay"),
-    sustain: v("m-env-sustain"), release: v("m-env-release"),
-    attackCurve: v("m-env-attack-curve"), decayCurve: v("m-env-decay-curve"),
-    releaseCurve: v("m-env-release-curve"),
-  }, "#6f42af");
-  drawEnvelopeGraph("a-env-graph", {
-    attack: v("a-env-attack"), decay: v("a-env-decay"),
-    sustain: v("a-env-sustain"), release: v("a-env-release"),
-    attackCurve: v("a-env-attack-curve"), decayCurve: v("a-env-decay-curve"),
-    releaseCurve: v("a-env-release-curve"),
-  }, "#66d9ef");
-  drawEnvelopeGraph("f-env-graph", {
-    attack: v("f-env-attack"), decay: v("f-env-decay"),
-    sustain: v("f-env-sustain"), release: v("f-env-release"),
-    attackCurve: v("f-env-attack-curve"), decayCurve: v("f-env-decay-curve"),
-    releaseCurve: v("f-env-release-curve"),
-  }, "#66d9ef");
+  drawEnvelopeGraph(
+    "m-env-graph",
+    {
+      attack: v("m-env-attack"),
+      decay: v("m-env-decay"),
+      sustain: v("m-env-sustain"),
+      release: v("m-env-release"),
+      attackCurve: v("m-env-attack-curve"),
+      decayCurve: v("m-env-decay-curve"),
+      releaseCurve: v("m-env-release-curve"),
+    },
+    "#6f42af",
+  );
+  drawEnvelopeGraph(
+    "a-env-graph",
+    {
+      attack: v("a-env-attack"),
+      decay: v("a-env-decay"),
+      sustain: v("a-env-sustain"),
+      release: v("a-env-release"),
+      attackCurve: v("a-env-attack-curve"),
+      decayCurve: v("a-env-decay-curve"),
+      releaseCurve: v("a-env-release-curve"),
+    },
+    "#66d9ef",
+  );
+  drawEnvelopeGraph(
+    "f-env-graph",
+    {
+      attack: v("f-env-attack"),
+      decay: v("f-env-decay"),
+      sustain: v("f-env-sustain"),
+      release: v("f-env-release"),
+      attackCurve: v("f-env-attack-curve"),
+      decayCurve: v("f-env-decay-curve"),
+      releaseCurve: v("f-env-release-curve"),
+    },
+    "#66d9ef",
+  );
 }
 
 // audio transport params
@@ -64,7 +93,9 @@ for (const bp of PD_BREAKPOINTS) {
 }
 $("pd-morph-base").addEventListener("input", recalculatePd);
 $("pd-morph-env-amt").addEventListener("input", () => {
-  $("pd-morph-env-amt-out").textContent = parseFloat($("pd-morph-env-amt").value).toFixed(2);
+  $("pd-morph-env-amt-out").textContent = parseFloat(
+    $("pd-morph-env-amt").value,
+  ).toFixed(2);
   sendAllParams();
 });
 
@@ -72,16 +103,28 @@ $("pd-morph-env-amt").addEventListener("input", () => {
 $("cz-resonanceAmount").addEventListener("input", recalculateCz);
 $("cz-windowType").addEventListener("change", recalculateCz);
 $("cz-res-env-amt").addEventListener("input", () => {
-  $("cz-res-env-amt-out").textContent = parseFloat($("cz-res-env-amt").value).toFixed(2);
+  $("cz-res-env-amt-out").textContent = parseFloat(
+    $("cz-res-env-amt").value,
+  ).toFixed(2);
   sendAllParams();
 });
 
 // envelope sliders
 const envelopeSliderIds = [
-  "a-env-attack", "a-env-decay", "a-env-sustain", "a-env-release",
-  "a-env-attack-curve", "a-env-decay-curve", "a-env-release-curve",
-  "m-env-attack", "m-env-decay", "m-env-sustain", "m-env-release",
-  "m-env-attack-curve", "m-env-decay-curve", "m-env-release-curve",
+  "a-env-attack",
+  "a-env-decay",
+  "a-env-sustain",
+  "a-env-release",
+  "a-env-attack-curve",
+  "a-env-decay-curve",
+  "a-env-release-curve",
+  "m-env-attack",
+  "m-env-decay",
+  "m-env-sustain",
+  "m-env-release",
+  "m-env-attack-curve",
+  "m-env-decay-curve",
+  "m-env-release-curve",
 ];
 for (const id of envelopeSliderIds) {
   $(id).addEventListener("input", () => {
@@ -93,8 +136,13 @@ for (const id of envelopeSliderIds) {
 
 // frequency envelope sliders
 const freqEnvIds = [
-  "f-env-attack", "f-env-decay", "f-env-sustain", "f-env-release",
-  "f-env-attack-curve", "f-env-decay-curve", "f-env-release-curve",
+  "f-env-attack",
+  "f-env-decay",
+  "f-env-sustain",
+  "f-env-release",
+  "f-env-attack-curve",
+  "f-env-decay-curve",
+  "f-env-release-curve",
 ];
 for (const id of freqEnvIds) {
   $(id).addEventListener("input", () => {

@@ -13,7 +13,9 @@ function beginGate() {
   const wasIdle = modulationState.envelopePhase === "idle";
   modulationState.envelopePhase = "attack";
   modulationState.phaseStartTime = performance.now();
-  modulationState.attackStartLevel = wasIdle ? 0 : modulationState.envelopeValue;
+  modulationState.attackStartLevel = wasIdle
+    ? 0
+    : modulationState.envelopeValue;
 }
 
 function endGate() {
@@ -66,7 +68,8 @@ function evaluateEnvelope() {
     case "decay": {
       if (decay > 0) {
         const t = Math.min(elapsed / decay, 1);
-        modulationState.envelopeValue = 1 - (1 - sustain) * shapeCurve(t, decayCurve);
+        modulationState.envelopeValue =
+          1 - (1 - sustain) * shapeCurve(t, decayCurve);
       } else {
         modulationState.envelopeValue = sustain;
       }
@@ -128,10 +131,14 @@ function renderModulatedVisuals() {
 
   const v = (id) => parseFloat($(id).value);
   const tf = new PhaseDistortionTransferFunction(
-    v("pd-x1"), v("pd-y1"),
-    v("pd-x2"), v("pd-y2"),
-    v("pd-x3"), v("pd-y3"),
-    v("pd-x4"), v("pd-y4"),
+    v("pd-x1"),
+    v("pd-y1"),
+    v("pd-x2"),
+    v("pd-y2"),
+    v("pd-x3"),
+    v("pd-y3"),
+    v("pd-x4"),
+    v("pd-y4"),
   );
 
   const targetData = new Float32Array(GRAPH_POINTS);

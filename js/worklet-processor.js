@@ -5,7 +5,7 @@ const MIN_GAP = 1e-4;
 
 const SINE_TABLE = new Float32Array(TABLE_SIZE);
 for (let i = 0; i < TABLE_SIZE; i++) {
-  SINE_TABLE[i] = Math.sin(2 * Math.PI * i / TABLE_SIZE);
+  SINE_TABLE[i] = Math.sin((2 * Math.PI * i) / TABLE_SIZE);
 }
 
 function lookupSine(phase) {
@@ -33,12 +33,18 @@ class SynthEnvelope {
     this.loop = false;
   }
 
-  get attackSamples() { return this.attackMs * this.sampleRateMs; }
-  get decaySamples()  { return this.decayMs  * this.sampleRateMs; }
-  get releaseSamples(){ return this.releaseMs * this.sampleRateMs; }
+  get attackSamples() {
+    return this.attackMs * this.sampleRateMs;
+  }
+  get decaySamples() {
+    return this.decayMs * this.sampleRateMs;
+  }
+  get releaseSamples() {
+    return this.releaseMs * this.sampleRateMs;
+  }
 
   noteOn() {
-    this.attackStartLevel = (this.stage === "Idle") ? 0 : this.currentLevel;
+    this.attackStartLevel = this.stage === "Idle" ? 0 : this.currentLevel;
     this.segmentStartLevel = this.attackStartLevel;
     this.stage = "Attack";
     this.counter = 0;
@@ -58,21 +64,21 @@ class SynthEnvelope {
           start: this.attackStartLevel,
           end: 1,
           samples: this.attackSamples,
-          curve: this.attackCurve
+          curve: this.attackCurve,
         };
       case "Decay":
         return {
           start: 1,
           end: this.sustainLevel,
           samples: this.decaySamples,
-          curve: this.decayCurve
+          curve: this.decayCurve,
         };
       case "Release":
         return {
           start: this.segmentStartLevel,
           end: 0,
           samples: this.releaseSamples,
-          curve: this.releaseCurve
+          curve: this.releaseCurve,
         };
       default:
         return { start: 0, end: 0, samples: 0, curve: 1 };
@@ -81,10 +87,14 @@ class SynthEnvelope {
 
   getNextStage(current) {
     switch (current) {
-      case "Attack":  return "Decay";
-      case "Decay":   return this.loop ? "Attack" : "Sustain";
-      case "Release": return "Idle";
-      default:        return "Idle";
+      case "Attack":
+        return "Decay";
+      case "Decay":
+        return this.loop ? "Attack" : "Sustain";
+      case "Release":
+        return "Idle";
+      default:
+        return "Idle";
     }
   }
 
@@ -144,7 +154,9 @@ class SynthEnvelope {
 
       if (params.samples > 0) {
         const t = this.counter / params.samples;
-        this.currentLevel = params.start + (params.end - params.start) * this.shapeCurve(t, params.curve);
+        this.currentLevel =
+          params.start +
+          (params.end - params.start) * this.shapeCurve(t, params.curve);
       } else {
         this.currentLevel = params.end;
       }
@@ -161,8 +173,10 @@ class PhaseDistortionTransferFunction {
     this.x2 = Math.min(Math.max(x2, this.x1 + MIN_GAP), 1 - 3 * MIN_GAP);
     this.x3 = Math.min(Math.max(x3, this.x2 + MIN_GAP), 1 - 2 * MIN_GAP);
     this.x4 = Math.min(Math.max(x4, this.x3 + MIN_GAP), 1 - MIN_GAP);
-    this.y1 = Math.max(0, Math.min(1, y1)); this.y2 = Math.max(0, Math.min(1, y2));
-    this.y3 = Math.max(0, Math.min(1, y3)); this.y4 = Math.max(0, Math.min(1, y4));
+    this.y1 = Math.max(0, Math.min(1, y1));
+    this.y2 = Math.max(0, Math.min(1, y2));
+    this.y3 = Math.max(0, Math.min(1, y3));
+    this.y4 = Math.max(0, Math.min(1, y4));
     this.m1 = this.y1 / this.x1;
     this.m2 = (this.y2 - this.y1) / (this.x2 - this.x1);
     this.m3 = (this.y3 - this.y2) / (this.x3 - this.x2);
@@ -181,7 +195,8 @@ class PhaseDistortionTransferFunction {
 function calcCzWindow(p, type) {
   if (type === "Saw") return 1 - p;
   if (type === "Triangle") return p < 0.5 ? p * 2 : (1 - p) * 2;
-  if (type === "Trapezoid") return (p >= 0.25 && p <= 0.75) ? 1 : (p < 0.25 ? p * 4 : (1 - p) * 4);
+  if (type === "Trapezoid")
+    return p >= 0.25 && p <= 0.75 ? 1 : p < 0.25 ? p * 4 : (1 - p) * 4;
   return 1;
 }
 
@@ -200,22 +215,31 @@ class PDProcessor extends AudioWorkletProcessor {
     this.pdEnvAmt = 0.75;
     this.baseCzRes = 0;
     this.czEnvAmt = 0.5;
-    this.czWinType = 'Saw';
-    this.currentTF = new PhaseDistortionTransferFunction(0.1,0.25,0.3,0.5,0.5,0.5,0.75,0.9);
+    this.czWinType = "Saw";
+    this.currentTF = new PhaseDistortionTransferFunction(
+      0.1,
+      0.25,
+      0.3,
+      0.5,
+      0.5,
+      0.5,
+      0.75,
+      0.9,
+    );
     this.phase = 0;
     this.czPhase = 0;
 
     this.port.onmessage = (event) => {
       const msg = event.data;
-      if (msg.type === 'noteOn') {
+      if (msg.type === "noteOn") {
         this.ampEnv.noteOn();
         this.morphEnv.noteOn();
         this.freqEnv.noteOn();
-      } else if (msg.type === 'noteOff') {
+      } else if (msg.type === "noteOff") {
         this.ampEnv.noteOff();
         this.morphEnv.noteOff();
         this.freqEnv.noteOff();
-      } else if (msg.type === 'setParams') {
+      } else if (msg.type === "setParams") {
         const p = msg.params;
         this.frequency = p.frequency;
         this.volume = p.volume;
@@ -235,7 +259,14 @@ class PDProcessor extends AudioWorkletProcessor {
 
         const tf = p.tf;
         this.currentTF = new PhaseDistortionTransferFunction(
-          tf.x1, tf.y1, tf.x2, tf.y2, tf.x3, tf.y3, tf.x4, tf.y4
+          tf.x1,
+          tf.y1,
+          tf.x2,
+          tf.y2,
+          tf.x3,
+          tf.y3,
+          tf.x4,
+          tf.y4,
         );
       }
     };
@@ -261,7 +292,7 @@ class PDProcessor extends AudioWorkletProcessor {
       let currentFreq;
 
       if (freqEnvOn) {
-        const freqMod = Math.pow(2, this.freqEnvAmt * freqEnvArray[i] / 12);
+        const freqMod = Math.pow(2, (this.freqEnvAmt * freqEnvArray[i]) / 12);
         currentFreq = this.frequency * freqMod;
       } else {
         currentFreq = this.frequency;
@@ -275,7 +306,10 @@ class PDProcessor extends AudioWorkletProcessor {
       let czOut = 0;
 
       if (this.pdOn) {
-        let morph = Math.max(0, Math.min(1, this.baseMorph + morphEnvArray[i] * this.pdEnvAmt));
+        let morph = Math.max(
+          0,
+          Math.min(1, this.baseMorph + morphEnvArray[i] * this.pdEnvAmt),
+        );
         let distortedP = this.currentTF.distort(this.phase);
         let sSrc = lookupSine(this.phase);
         let sDst = lookupSine(distortedP);
@@ -283,7 +317,10 @@ class PDProcessor extends AudioWorkletProcessor {
       }
 
       if (this.czOn) {
-        let resAmt = Math.max(0, Math.min(1, this.baseCzRes + morphEnvArray[i] * this.czEnvAmt));
+        let resAmt = Math.max(
+          0,
+          Math.min(1, this.baseCzRes + morphEnvArray[i] * this.czEnvAmt),
+        );
         let resScaled = resAmt * 15 + 1;
         this.czPhase = (this.phase * resScaled) % 1.0;
         if (this.czPhase >= 1.0) this.czPhase -= 1.0;
@@ -301,4 +338,4 @@ class PDProcessor extends AudioWorkletProcessor {
   }
 }
 
-registerProcessor('pd-processor', PDProcessor);
+registerProcessor("pd-processor", PDProcessor);

@@ -138,7 +138,15 @@ function drawEnvelopeGraph(id, params, color) {
 
   ctx.clearRect(0, 0, w, h);
 
-  const { attack, decay, sustain, release, attackCurve, decayCurve, releaseCurve } = params;
+  const {
+    attack,
+    decay,
+    sustain,
+    release,
+    attackCurve,
+    decayCurve,
+    releaseCurve,
+  } = params;
   const sustainVisible = Math.max(attack + decay, release) * 0.4;
   const total = attack + decay + sustainVisible + release;
   if (total === 0) return;
@@ -165,14 +173,24 @@ function drawEnvelopeGraph(id, params, color) {
   currentTime += attack;
   seg(currentTime, currentTime + decay, 1, sustain, decayCurve, decay);
   currentTime += decay;
-  seg(currentTime, currentTime + sustainVisible, sustain, sustain, 1, sustainVisible);
+  seg(
+    currentTime,
+    currentTime + sustainVisible,
+    sustain,
+    sustain,
+    1,
+    sustainVisible,
+  );
   currentTime += sustainVisible;
   seg(currentTime, currentTime + release, sustain, 0, releaseCurve, release);
 
   ctx.stroke();
 
   // subtle fill
-  ctx.lineTo(currentTime + release > 0 ? (currentTime + release) / total * w : 0, h);
+  ctx.lineTo(
+    currentTime + release > 0 ? ((currentTime + release) / total) * w : 0,
+    h,
+  );
   ctx.closePath();
   ctx.fillStyle = color + "18";
   ctx.fill();
