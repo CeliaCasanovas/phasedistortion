@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 const modulationState = {
   envelopePhase: "idle",
   envelopeValue: 0,
@@ -9,12 +10,10 @@ const modulationState = {
 };
 
 function beginGate() {
+  const wasIdle = modulationState.envelopePhase === "idle";
   modulationState.envelopePhase = "attack";
   modulationState.phaseStartTime = performance.now();
-  modulationState.attackStartLevel =
-    modulationState.envelopePhase === "idle"
-      ? 0
-      : modulationState.envelopeValue;
+  modulationState.attackStartLevel = wasIdle ? 0 : modulationState.envelopeValue;
 }
 
 function endGate() {
@@ -25,7 +24,6 @@ function endGate() {
   }
 }
 
-// are these wrappers really needed? i need some sleep
 let gateOn = async function () {
   beginGate();
   await originalGateOn();
@@ -44,24 +42,34 @@ function evaluateEnvelope() {
   const decay = parseFloat($("m-env-decay").value) / 1000;
   const sustain = parseFloat($("m-env-sustain").value);
   const release = parseFloat($("m-env-release").value) / 1000;
+  const attackCurve = parseFloat($("m-env-attack-curve").value);
+  const decayCurve = parseFloat($("m-env-decay-curve").value);
+  const releaseCurve = parseFloat($("m-env-release-curve").value);
   const looping = $("m-env-loop")?.checked ?? false;
 
   switch (modulationState.envelopePhase) {
-    case "attack":
-      modulationState.envelopeValue =
-        attack > 0
-          ? modulationState.attackStartLevel +
-            (1 - modulationState.attackStartLevel) *
-              Math.min(elapsed / attack, 1)
-          : 1;
+    case "attack": {
+      if (attack > 0) {
+        const t = Math.min(elapsed / attack, 1);
+        modulationState.envelopeValue =
+          modulationState.attackStartLevel +
+          (1 - modulationState.attackStartLevel) * shapeCurve(t, attackCurve);
+      } else {
+        modulationState.envelopeValue = 1;
+      }
       if (elapsed >= attack) {
         modulationState.envelopePhase = "decay";
         modulationState.phaseStartTime = now;
       }
       break;
-    case "decay":
-      modulationState.envelopeValue =
-        decay > 0 ? 1 - (1 - sustain) * Math.min(elapsed / decay, 1) : sustain;
+    }
+    case "decay": {
+      if (decay > 0) {
+        const t = Math.min(elapsed / decay, 1);
+        modulationState.envelopeValue = 1 - (1 - sustain) * shapeCurve(t, decayCurve);
+      } else {
+        modulationState.envelopeValue = sustain;
+      }
       if (elapsed >= decay) {
         if (looping) {
           modulationState.attackStartLevel = modulationState.envelopeValue;
@@ -72,20 +80,24 @@ function evaluateEnvelope() {
         modulationState.phaseStartTime = now;
       }
       break;
+    }
     case "sustain":
       modulationState.envelopeValue = sustain;
       break;
-    case "release":
-      modulationState.envelopeValue =
-        release > 0
-          ? modulationState.releaseStartValue *
-            (1 - Math.min(elapsed / release, 1))
-          : 0;
+    case "release": {
+      if (release > 0) {
+        const t = Math.min(elapsed / release, 1);
+        modulationState.envelopeValue =
+          modulationState.releaseStartValue * (1 - shapeCurve(t, releaseCurve));
+      } else {
+        modulationState.envelopeValue = 0;
+      }
       if (elapsed >= release) {
         modulationState.envelopePhase = "idle";
         modulationState.envelopeValue = 0;
       }
       break;
+    }
     default:
       modulationState.envelopeValue = 0;
   }
@@ -114,16 +126,12 @@ function evaluateModulations() {
 function renderModulatedVisuals() {
   evaluateModulations();
 
-  const g = (id) => parseFloat($(id).value);
+  const v = (id) => parseFloat($(id).value);
   const tf = new PhaseDistortionTransferFunction(
-    g("pd-x1"),
-    g("pd-y1"),
-    g("pd-x2"),
-    g("pd-y2"),
-    g("pd-x3"),
-    g("pd-y3"),
-    g("pd-x4"),
-    g("pd-y4"),
+    v("pd-x1"), v("pd-y1"),
+    v("pd-x2"), v("pd-y2"),
+    v("pd-x3"), v("pd-y3"),
+    v("pd-x4"), v("pd-y4"),
   );
 
   const targetData = new Float32Array(GRAPH_POINTS);

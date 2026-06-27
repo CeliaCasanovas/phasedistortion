@@ -1,4 +1,4 @@
-// i18n.js
+// SPDX-License-Identifier: GPL-3.0-or-later
 const TRANSLATIONS = {
   en: {
     title: "Phase Distortion Engine",
@@ -15,7 +15,7 @@ const TRANSLATIONS = {
     on: "ON",
     transferBreakpoints: "Transfer function breakpoints",
     morphSettings: "Morph Settings",
-    baseMorph: "Base Morph",
+    baseMorph: "Morph",
     envAmount: "Env Amount",
     legendSource: "Source",
     legendTarget: "Target",
@@ -127,7 +127,7 @@ const TRANSLATIONS = {
     on: "ON",
     transferBreakpoints: "伝達関数のブレークポイント",
     morphSettings: "モーフ設定",
-    baseMorph: "ベース・モーフ",
+    baseMorph: "モーフ",
     envAmount: "エンベロープ量",
     legendSource: "ソース",
     legendTarget: "ターゲット",
@@ -188,23 +188,23 @@ function applyLanguage(lang) {
     }
   });
 
-  const tablist = document.getElementById("tablist");
+  const tablist = $("tablist");
   if (tablist) {
     tablist.setAttribute("aria-label", TRANSLATIONS[lang].tablistLabel);
   }
 
   NOTE_NAMES = TRANSLATIONS[lang].noteNames;
-  const freqSlider = document.getElementById("frequency");
+  const freqSlider = $("frequency");
   if (freqSlider) {
     const f = freqFromSlider(parseFloat(freqSlider.value));
-    document.getElementById("frequency-out").textContent =
+    $("frequency-out").textContent =
       `${nearestNoteName(f)}: ${f < 1000 ? Math.round(f) + "Hz" : (f / 1000).toFixed(2) + "kHz"}`;
   }
 
   localStorage.setItem("synth-lang", lang);
 }
 
-const langToggle = document.getElementById("langToggle");
+const langToggle = $("langToggle");
 const savedLang =
   localStorage.getItem("synth-lang") ||
   Object.keys(TRANSLATIONS).find((lang) =>

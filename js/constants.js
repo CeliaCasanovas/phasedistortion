@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 const TABLE_SIZE = 4096;
 const TABLE_MASK = TABLE_SIZE - 1;
 const MIN_GAP = 1e-4;

@@ -14,19 +14,9 @@
       </header>
 
       <!-- language menu -->
-      <div style="text-align: right; margin-bottom: 0.5rem">
+      <div class="lang-bar">
         <label for="langToggle" class="sr-only">Language</label>
-        <select
-          id="langToggle"
-          style="
-            background: #000;
-            color: var(--fg);
-            border-color: var(--fg-dim);
-            font-family: inherit;
-            font-size: 0.7rem;
-            padding: 0.2rem 0.4rem;
-          "
-        >
+        <select id="langToggle" class="lang-select">
           <option value="en">English</option>
           <option value="ca">Català</option>
           <option value="ja">日本語</option>
@@ -50,11 +40,11 @@
             <input
               type="range"
               id="volume"
+              class="slider-vol"
               min="0"
               max="1"
               step="0.01"
               value="0.5"
-              style="width: 80px"
             />
             <output for="volume" id="volume-out">0.50</output>
           </div>
@@ -119,10 +109,7 @@
       >
         <div class="panel-title">
           <span data-i18n="pdHeading">// phase distortion</span>
-          <label
-            class="control-row"
-            style="margin: 0; color: var(--pink); cursor: pointer"
-          >
+          <label class="control-row on-toggle">
             <span data-i18n="on">ON</span>
             <input type="checkbox" id="pd-enable" checked />
           </label>
@@ -202,10 +189,7 @@
       >
         <div class="panel-title">
           <span data-i18n="czHeading">// cz resonance</span>
-          <label
-            class="control-row"
-            style="margin: 0; color: var(--orange); cursor: pointer"
-          >
+          <label class="control-row on-toggle">
             <span data-i18n="on">ON</span>
             <input type="checkbox" id="cz-enable" />
           </label>
@@ -385,6 +369,11 @@
             <input type="checkbox" id="m-env-loop" />
           </div>
         </div>
+        <figure class="graph-figure graph-figure--env">
+          <div class="wave-container wave-container--full">
+            <canvas id="m-env-graph"></canvas>
+          </div>
+        </figure>
       </section>
 
       <!-- amp envelope -->
@@ -496,13 +485,18 @@
             <input type="checkbox" id="a-env-loop" />
           </div>
         </div>
+        <figure class="graph-figure graph-figure--env">
+          <div class="wave-container wave-container--full">
+            <canvas id="a-env-graph"></canvas>
+          </div>
+        </figure>
       </section>
 
       <!-- pitch envelope -->
        <section class="panel panel-mod">
     <p class="panel-title">
         <span data-i18n="freqEnvelope">// frequency envelope</span>
-        <label class="control-row" style="margin:0;color: var(--cyan); cursor: pointer;">
+        <label class="control-row on-toggle">
             <span data-i18n="on">ON</span>
             <input type="checkbox" id="freq-env-enable" />
         </label>
@@ -553,6 +547,11 @@
             <output for="f-env-amt" id="f-env-amt-out">0.0</output>
         </div>
     </div>
+    <figure class="graph-figure graph-figure--env">
+        <div class="wave-container wave-container--full">
+            <canvas id="f-env-graph"></canvas>
+        </div>
+    </figure>
 </section>
     </main>
 

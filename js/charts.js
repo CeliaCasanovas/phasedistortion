@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 const GRAPH_POINTS = 2048;
 const xLabels = Array.from({ length: GRAPH_POINTS }, (_, i) => i);
 const sineGraphData = new Float32Array(GRAPH_POINTS);
@@ -21,7 +22,7 @@ const chartOpts = {
   },
 };
 
-const pdWaveChart = new Chart(document.getElementById("pd-waveChart"), {
+const pdWaveChart = new Chart($("pd-waveChart"), {
   type: "line",
   data: {
     labels: xLabels,
@@ -39,7 +40,7 @@ const pdWaveChart = new Chart(document.getElementById("pd-waveChart"), {
   options: chartOpts,
 });
 
-const pdTransferChart = new Chart(document.getElementById("pd-transferChart"), {
+const pdTransferChart = new Chart($("pd-transferChart"), {
   type: "line",
   data: {
     datasets: [
@@ -75,7 +76,7 @@ const pdTransferChart = new Chart(document.getElementById("pd-transferChart"), {
   },
 });
 
-const czWaveChart = new Chart(document.getElementById("cz-waveChart"), {
+const czWaveChart = new Chart($("cz-waveChart"), {
   type: "line",
   data: {
     labels: xLabels,
@@ -104,7 +105,7 @@ const PD_BREAKPOINTS = [
 ];
 
 (function buildBreakpointsUI() {
-  const grid = document.getElementById("pd-breakpoints");
+  const grid = $("pd-breakpoints");
   for (const bp of PD_BREAKPOINTS) {
     const div = document.createElement("div");
     div.className = "control";
@@ -115,79 +116,95 @@ const PD_BREAKPOINTS = [
   }
 })();
 
+const _envCanvasSize = new Map();
+
+function drawEnvelopeGraph(id, params, color) {
+  const canvas = $(id);
+  if (!canvas) return;
+  const ctx = canvas.getContext("2d");
+  const dpr = window.devicePixelRatio || 1;
+  const rect = canvas.getBoundingClientRect();
+  const w = rect.width | 0;
+  const h = rect.height | 0;
+  if (w === 0 || h === 0) return;
+
+  const key = _envCanvasSize.get(id);
+  if (!key || key.w !== w || key.h !== h || key.dpr !== dpr) {
+    canvas.width = w * dpr;
+    canvas.height = h * dpr;
+    _envCanvasSize.set(id, { w, h, dpr });
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  }
+
+  ctx.clearRect(0, 0, w, h);
+
+  const { attack, decay, sustain, release, attackCurve, decayCurve, releaseCurve } = params;
+  const sustainVisible = Math.max(attack + decay, release) * 0.4;
+  const total = attack + decay + sustainVisible + release;
+  if (total === 0) return;
+
+  ctx.strokeStyle = color;
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+
+  const seg = (tStart, tEnd, startLevel, endLevel, curve, samples) => {
+    const steps = Math.max(2, Math.min(60, Math.round(samples / 5)));
+    for (let i = 0; i <= steps; i++) {
+      const t = i / steps;
+      const progress = shapeCurve(t, curve);
+      const level = startLevel + (endLevel - startLevel) * progress;
+      const x = ((tStart + t * (tEnd - tStart)) / total) * w;
+      const y = h - level * (h - 4) - 2;
+      ctx.lineTo(x, y);
+    }
+  };
+
+  let currentTime = 0;
+  ctx.moveTo(0, h);
+  seg(currentTime, currentTime + attack, 0, 1, attackCurve, attack);
+  currentTime += attack;
+  seg(currentTime, currentTime + decay, 1, sustain, decayCurve, decay);
+  currentTime += decay;
+  seg(currentTime, currentTime + sustainVisible, sustain, sustain, 1, sustainVisible);
+  currentTime += sustainVisible;
+  seg(currentTime, currentTime + release, sustain, 0, releaseCurve, release);
+
+  ctx.stroke();
+
+  // subtle fill
+  ctx.lineTo(currentTime + release > 0 ? (currentTime + release) / total * w : 0, h);
+  ctx.closePath();
+  ctx.fillStyle = color + "18";
+  ctx.fill();
+}
+
 let recalculatingPd = false;
 
 function recalculatePd() {
   if (recalculatingPd) return;
   recalculatingPd = true;
 
-  const g = (id) => parseFloat(document.getElementById(id).value);
-  let prev = g("pd-x1");
+  const v = (id) => parseFloat($(id).value);
+  let prev = v("pd-x1");
   for (const id of ["pd-x2", "pd-x3", "pd-x4"]) {
-    const el = document.getElementById(id);
+    const el = $(id);
     const needed = prev + MIN_GAP;
-    if (g(id) < needed) el.value = Math.min(needed, parseFloat(el.max));
-    prev = g(id);
+    if (v(id) < needed) el.value = Math.min(needed, parseFloat(el.max));
+    prev = v(id);
   }
   for (const bp of PD_BREAKPOINTS) {
-    document.getElementById(`${bp.id}-out`).textContent = g(bp.id).toFixed(2);
+    $(`${bp.id}-out`).textContent = v(bp.id).toFixed(2);
   }
 
-  const tf = new PhaseDistortionTransferFunction(
-    g("pd-x1"),
-    g("pd-y1"),
-    g("pd-x2"),
-    g("pd-y2"),
-    g("pd-x3"),
-    g("pd-y3"),
-    g("pd-x4"),
-    g("pd-y4"),
-  );
-  const baseMorph = g("pd-morph-base");
-  document.getElementById("pd-morph-base-out").textContent =
-    baseMorph.toFixed(2);
-
-  const targetData = new Float32Array(GRAPH_POINTS);
-  const morphedData = new Float32Array(GRAPH_POINTS);
-  for (let i = 0; i < GRAPH_POINTS; i++) {
-    const p = i / GRAPH_POINTS;
-    const sSrc = lookupSine(p);
-    const sDst = lookupSine(tf.distort(p));
-    targetData[i] = sDst;
-    morphedData[i] = sSrc + (sDst - sSrc) * baseMorph;
-  }
-
-  pdWaveChart.data.datasets[1].data = Array.from(targetData);
-  pdWaveChart.data.datasets[2].data = Array.from(morphedData);
-  pdWaveChart.update("none");
-
-  pdTransferChart.data.datasets[0].data = [
-    { x: 0, y: 0 },
-    { x: tf.x1, y: tf.y1 },
-    { x: tf.x2, y: tf.y2 },
-    { x: tf.x3, y: tf.y3 },
-    { x: tf.x4, y: tf.y4 },
-    { x: 1, y: 1 },
-  ];
-  pdTransferChart.update("none");
+  $(`pd-morph-base-out`).textContent = v("pd-morph-base").toFixed(2);
 
   recalculatingPd = false;
-  sendAllParams(); // audio.js
+  sendAllParams();
 }
 
 function recalculateCz() {
-  const amt = parseFloat(document.getElementById("cz-resonanceAmount").value);
-  const type = document.getElementById("cz-windowType").value;
-  document.getElementById("cz-resonanceAmount-out").textContent =
-    amt.toFixed(2);
-  const resScaled = amt * 15 + 1;
-  const czData = new Float32Array(GRAPH_POINTS);
-  for (let i = 0; i < GRAPH_POINTS; i++) {
-    const p = i / GRAPH_POINTS;
-    const resoPhase = (p * resScaled) % 1.0;
-    czData[i] = lookupSine(resoPhase) * calcCzWindow(p, type);
-  }
-  czWaveChart.data.datasets[1].data = Array.from(czData);
-  czWaveChart.update("none");
+  const amt = parseFloat($("cz-resonanceAmount").value);
+  const type = $("cz-windowType").value;
+  $("cz-resonanceAmount-out").textContent = amt.toFixed(2);
   sendAllParams();
 }

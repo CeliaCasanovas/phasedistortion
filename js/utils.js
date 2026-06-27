@@ -1,3 +1,12 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
+
+function shapeCurve(t, curve) {
+  if (curve === 1.0) return t;
+  if (curve === 2.0) return t * t;
+  if (curve === 0.5) return Math.sqrt(t);
+  return Math.pow(t, curve);
+}
+
 const SINE_TABLE = new Float32Array(TABLE_SIZE);
 for (let i = 0; i < TABLE_SIZE; i++) {
   SINE_TABLE[i] = Math.sin((2 * Math.PI * i) / TABLE_SIZE);
