@@ -5,30 +5,56 @@ $("gateBtn").addEventListener("mousedown", gateOn);
 $("gateBtn").addEventListener("mouseup", gateOff);
 $("gateBtn").addEventListener("mouseleave", gateOff);
 
+function isEditableElement(el) {
+  if (!el) return false;
+  const tag = el.tagName;
+  if (tag === "INPUT") {
+    // Allow range sliders, checkboxes, buttons, etc. – block only text‑like inputs
+    const type = el.type;
+    if (
+      type === "text" ||
+      type === "number" ||
+      type === "password" ||
+      type === "email" ||
+      type === "url" ||
+      type === "search" ||
+      type === "tel"
+    ) {
+      return true;
+    }
+    return false;
+  }
+  if (tag === "TEXTAREA" || tag === "SELECT") return true;
+  if (el.isContentEditable) return true;
+  return false;
+}
+
 document.addEventListener(
   "keydown",
   (event) => {
     if (event.code !== "Space") return;
-    const tag = event.target.tagName;
-    if (tag === "INPUT" || tag === "SELECT" || tag === "TEXTAREA") return;
+    if (event.repeat) return;
+    // Only block Space while the user is typing in a true text field
+    if (isEditableElement(document.activeElement)) return;
+
     event.preventDefault();
     event.stopPropagation();
-    if (!event.repeat) gateOn();
+    gateOn();
   },
-  { passive: false },
+  { capture: true, passive: false },
 );
 
 document.addEventListener(
   "keyup",
   (event) => {
     if (event.code !== "Space") return;
-    const tag = event.target.tagName;
-    if (tag === "INPUT" || tag === "SELECT" || tag === "TEXTAREA") return;
+    if (isEditableElement(document.activeElement)) return;
+
     event.preventDefault();
     event.stopPropagation();
     gateOff();
   },
-  { passive: false },
+  { capture: true, passive: false },
 );
 
 function drawAllEnvGraphs() {
