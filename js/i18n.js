@@ -134,6 +134,12 @@ function applyLanguage(lang) {
   }
 
   NOTE_NAMES = TRANSLATIONS[lang].noteNames;
+  const freqSlider = document.getElementById("frequency");
+  if (freqSlider) {
+    const f = freqFromSlider(parseFloat(freqSlider.value));
+    document.getElementById("frequency-out").textContent =
+      `${nearestNoteName(f)}: ${f < 1000 ? Math.round(f) + "Hz" : (f / 1000).toFixed(2) + "kHz"}`;
+  }
 
   localStorage.setItem("synth-lang", lang);
 }
