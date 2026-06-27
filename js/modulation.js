@@ -64,8 +64,8 @@ function evaluateEnvelope() {
         decay > 0 ? 1 - (1 - sustain) * Math.min(elapsed / decay, 1) : sustain;
       if (elapsed >= decay) {
         if (looping) {
-          modulationState.envelopePhase = "attack";
           modulationState.attackStartLevel = modulationState.envelopeValue;
+          modulationState.envelopePhase = "attack";
         } else {
           modulationState.envelopePhase = "sustain";
         }
@@ -91,7 +91,6 @@ function evaluateEnvelope() {
   }
 }
 
-// same, is this an innecessary wrapper? was i too lazy? whatever
 function evaluateModulations() {
   evaluateEnvelope();
   modulationState.morph = Math.max(
