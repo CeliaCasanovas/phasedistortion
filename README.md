@@ -3,7 +3,7 @@ oi it's a work in progress web demo/vanilla javascript port of my work in progre
 gplv3 licence, basically do whatever you want but don't change the licence  
   
 now featuring!!  
-a catalan and japanese version  
+catalan and japanese versions  
 envelopes/lfos for morph (sine+distorted wave interpolation amount, and resonant wave frequency), amplitude and frequency  
 
 the envelopes/lfos have curve controls although imo only the "logarithmic"-type shapes, which are actually inverse exponential, sound good: try the 0.5-0.8 range  
