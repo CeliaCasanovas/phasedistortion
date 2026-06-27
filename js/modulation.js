@@ -3,6 +3,7 @@ const modulationState = {
   envelopeValue: 0,
   phaseStartTime: 0,
   releaseStartValue: 0,
+  attackStartLevel: 0,
   morph: 0,
   resonance: 0,
 };
@@ -10,6 +11,10 @@ const modulationState = {
 function beginGate() {
   modulationState.envelopePhase = "attack";
   modulationState.phaseStartTime = performance.now();
+  modulationState.attackStartLevel =
+    modulationState.envelopePhase === "idle"
+      ? 0
+      : modulationState.envelopeValue;
 }
 
 function endGate() {
@@ -44,8 +49,12 @@ function evaluateEnvelope() {
   switch (modulationState.envelopePhase) {
     case "attack":
       modulationState.envelopeValue =
-        attack > 0 ? Math.min(elapsed / attack, 1) : 1;
-      if (modulationState.envelopeValue >= 1) {
+        attack > 0
+          ? modulationState.attackStartLevel +
+            (1 - modulationState.attackStartLevel) *
+              Math.min(elapsed / attack, 1)
+          : 1;
+      if (elapsed >= attack) {
         modulationState.envelopePhase = "decay";
         modulationState.phaseStartTime = now;
       }
@@ -56,6 +65,7 @@ function evaluateEnvelope() {
       if (elapsed >= decay) {
         if (looping) {
           modulationState.envelopePhase = "attack";
+          modulationState.attackStartLevel = modulationState.envelopeValue;
         } else {
           modulationState.envelopePhase = "sustain";
         }
